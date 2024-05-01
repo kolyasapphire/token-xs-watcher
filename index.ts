@@ -1,4 +1,4 @@
-import { CovalentClient } from "@covalenthq/client-sdk";
+import { CovalentClient, Chains } from "@covalenthq/client-sdk";
 import { load } from "@std/dotenv";
 
 await load({ export: true });
@@ -51,41 +51,72 @@ const job = async () => {
 
   const client = new CovalentClient(COVALENT_TOKEN);
 
-  const res =
-    await client.BalanceService.getHistoricalPortfolioForWalletAddress(
-      "eth-mainnet",
-      ADDRESS,
-      { quoteCurrency: "USD", days: 1 },
-    );
+  const networks = [
+    Chains.ETH_MAINNET,
+    Chains.BASE_MAINNET,
+    Chains.AVALANCHE_MAINNET,
+  ];
 
-  console.debug("Loaded", res.data.items.length, "tokens");
+  for (const network of networks) {
+    console.debug("Starting", network);
+    console.time(network);
 
-  for (const token of res.data.items) {
-    if (!token.holdings[0].quote_rate) {
-      console.debug("Ignoring some random token", token.contract_name);
-      continue;
-    }
-
-    if (token.holdings[1].close.quote < 60) {
-      console.debug("Ignoring low balance token", token.contract_name);
-      continue;
-    }
-
-    const from = token.holdings[0].open.quote;
-    const to = token.holdings[1].close.quote;
-
-    const difference = (to / from - 1) * 100;
-
-    if (difference >= Number.parseInt(MIN_DIFFERENCE)) {
-      console.debug(
-        token.contract_name,
-        `(${token.contract_ticker_symbol})`,
-        `${Math.round(difference)}%`,
+    const res =
+      await client.BalanceService.getHistoricalPortfolioForWalletAddress(
+        network,
+        ADDRESS,
+        { quoteCurrency: "USD", days: 1 },
       );
-      await sendMessage(
-        `${token.contract_name} (${token.contract_ticker_symbol}) increased ${Math.round(difference)}%`,
-      );
+
+    console.debug("Loaded", res.data.items.length, "tokens");
+
+    for (const token of res.data.items) {
+      if (!token.holdings[0].quote_rate) {
+        console.debug(
+          "Ignoring some random token (no quote)",
+          token.contract_name,
+          token.contract_address,
+        );
+        continue;
+      }
+
+      const from = token.holdings[0].open.quote;
+      const to = token.holdings[1].close.quote;
+
+      if (to === 0) {
+        console.debug(
+          "Ignoring zero balance token",
+          token.contract_name,
+          token.contract_address,
+        );
+        continue;
+      }
+
+      if (to < 60) {
+        console.debug(
+          "Ignoring low balance token",
+          token.contract_name,
+          token.contract_address,
+          token.holdings[1].close.quote,
+        );
+        continue;
+      }
+
+      const difference = (to / from - 1) * 100;
+
+      if (difference >= Number.parseInt(MIN_DIFFERENCE)) {
+        console.debug(
+          token.contract_name,
+          `(${token.contract_ticker_symbol})`,
+          `${Math.round(difference)}%`,
+          token.contract_address,
+        );
+        await sendMessage(
+          `${token.contract_name} (${token.contract_ticker_symbol}) increased ${Math.round(difference)}%`,
+        );
+      }
     }
+    console.timeEnd(network);
   }
   console.timeEnd("job");
 };
