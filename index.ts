@@ -10,6 +10,8 @@ const BOT_TOKEN = Deno.env.get("BOT_TOKEN");
 const BOT_CHAT = Deno.env.get("BOT_CHAT");
 
 const job = async () => {
+  console.time("job");
+
   if (
     !COVALENT_TOKEN ||
     !ADDRESS ||
@@ -85,6 +87,7 @@ const job = async () => {
       );
     }
   }
+  console.timeEnd("job");
 };
 
 Deno.cron("job", "0 16 * * *", job);
