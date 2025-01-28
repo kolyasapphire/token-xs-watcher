@@ -55,6 +55,13 @@ const job = async () => {
     Chains.ETH_MAINNET,
     Chains.BASE_MAINNET,
     Chains.AVALANCHE_MAINNET,
+    Chains.ARBITRUM_MAINNET,
+    Chains.ZKSYNC_MAINNET,
+    Chains.GNOSIS_MAINNET,
+    Chains.MATIC_MAINNET,
+    Chains.POLYGON_ZKEVM_MAINNET,
+    Chains.OPTIMISM_MAINNET,
+    Chains.LINEA_MAINNET,
   ]
 
   for (const network of networks) {
