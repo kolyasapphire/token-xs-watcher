@@ -58,7 +58,7 @@ const job = async () => {
   ]
 
   for (const network of networks) {
-    console.debug('Starting', network)
+    console.debug('Starting network', network)
     console.time(network)
 
     const res = await client.BalanceService.getHistoricalPortfolioForWalletAddress(
@@ -67,7 +67,7 @@ const job = async () => {
       { quoteCurrency: 'USD', days: 1 },
     )
 
-    console.debug('Loaded', res.data.items.length, 'tokens')
+    console.debug('Loaded', res.data.items.length, 'tokens from API')
 
     for (const token of res.data.items) {
       if (!token.holdings[0].quote_rate) {
@@ -96,15 +96,23 @@ const job = async () => {
           'Ignoring low balance token',
           token.contract_name,
           token.contract_address,
-          token.holdings[1].close.quote,
+          `${to} USD`,
         )
         continue
       }
+
+      console.log(
+        'Loaded',
+        token.contract_name,
+        token.contract_address,
+        `${to} USD`,
+      )
 
       const difference = (to / from - 1) * 100
 
       if (difference >= Number.parseInt(MIN_DIFFERENCE)) {
         console.debug(
+          'Triggered:',
           token.contract_name,
           `(${token.contract_ticker_symbol})`,
           `${Math.round(difference)}%`,
