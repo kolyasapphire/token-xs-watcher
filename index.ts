@@ -86,8 +86,9 @@ const job = async () => {
         continue
       }
 
-      const from = token.holdings[0].open.quote
-      const to = token.holdings[1].close.quote
+      // Holdings are ordered by descending date from last day to earlier
+      const from = token.holdings[1].close.quote
+      const to = token.holdings[0].close.quote
 
       if (to === 0) {
         console.debug(
