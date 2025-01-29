@@ -94,7 +94,6 @@ const job = async () => {
         console.debug(
           'Ignoring zero balance token',
           token.contract_name,
-          token.contract_address,
         )
         continue
       }
@@ -103,7 +102,6 @@ const job = async () => {
         console.debug(
           'Ignoring low balance token',
           token.contract_name,
-          token.contract_address,
           `${to} USD`,
         )
         continue
@@ -112,7 +110,6 @@ const job = async () => {
       console.log(
         'Loaded',
         token.contract_name,
-        token.contract_address,
         `${to} USD`,
       )
 
@@ -124,7 +121,6 @@ const job = async () => {
           token.contract_name,
           `(${token.contract_ticker_symbol})`,
           `${Math.round(difference)}%`,
-          token.contract_address,
         )
         await sendMessage(
           `${token.contract_name} (${token.contract_ticker_symbol}) increased ${
