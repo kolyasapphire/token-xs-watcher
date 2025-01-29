@@ -71,7 +71,7 @@ const job = async () => {
     const res = await client.BalanceService.getHistoricalPortfolioForWalletAddress(
       network,
       ADDRESS,
-      { quoteCurrency: 'USD', days: 1 },
+      { quoteCurrency: 'USD', days: 3 },
     )
 
     console.debug('Loaded', res.data.items.length, 'tokens from API')
@@ -87,7 +87,7 @@ const job = async () => {
       }
 
       // Holdings are ordered by descending date from last day to earlier
-      const from = token.holdings[1].close.quote
+      let from = token.holdings[token.holdings.length - 1].close.quote
       const to = token.holdings[0].close.quote
 
       if (to === 0) {
@@ -105,6 +105,17 @@ const job = async () => {
           `${to} USD`,
         )
         continue
+      }
+
+      // Account for us possibly not having the token yet at that time
+      if (from === 0) {
+        for (const x of token.holdings.toSpliced(-1).toReversed()) {
+          if (x.close.quote !== 0) {
+            from = x.close.quote
+            break
+          }
+        }
+        if (from === 0) continue
       }
 
       console.log(
